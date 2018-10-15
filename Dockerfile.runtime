@@ -1,0 +1,37 @@
+# redhat-openjdk18-openshift:1.2
+FROM openshift/base-centos7
+
+LABEL maintainer="Eric George <eric@nolab.org>"
+
+ENV DROPWIZ_RUNTIME_VERSION 1.0
+
+LABEL io.k8s.description="Platform for deploying Dropwizard apps" \
+      io.k8s.display-name="Dropwizard Runtime 1.0" \
+      io.openshift.expose-services="8080:http" \
+      io.openshift.tags="runtime,dropwizard"
+
+EXPOSE 8080
+
+ENV JAVA_VERSON 1.8.0
+
+RUN yum update -y && \
+    yum install -y curl && \
+    yum install -y java-$JAVA_VERSON-openjdk java-$JAVA_VERSON-openjdk-devel && \
+    yum clean all
+
+ENV JAVA_HOME /usr/lib/jvm/java
+WORKDIR /opt/app-root
+
+# Default runtime vars
+ENV DEPLOY_DIR /opt/app-root/dist
+RUN mkdir -p ${DEPLOY_DIR}
+ENV DW_ACT server
+ENV DW_CONFIG ${DEPLOY_DIR}/config.yml
+
+# Add configuration files, bashrc and other tweaks
+COPY ./s2i/bin/ $STI_SCRIPTS_PATH
+
+RUN chown -R 1001:0 ./
+USER 1001
+
+CMD $STI_SCRIPTS_PATH/usage

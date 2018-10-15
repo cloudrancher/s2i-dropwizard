@@ -1,0 +1,12 @@
+#!/bin/bash -e
+#
+echo "---> Starting Dopwizard application"
+JAR=${JAR:- /opt/app-root/dist/*.jar}
+echo "--> JAVA_OPTS: $JAVA_OPTS"
+echo "--> JAR      : $JAR"
+echo "--> DW_ACT   : $DW_ACT"
+echo "--> DW_CONFIG: $DW_CONFIG"
+
+cmd="java -jar $JAVA_OPTS $JAR $DW_ACT $DW_CONFIG"
+echo "$cmd"
+exec $cmd

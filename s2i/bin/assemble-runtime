@@ -1,0 +1,10 @@
+#!/bin/bash -e
+#
+# The runtime image gets the artifacts placed in the WORKDIR.
+# We want them in /opt/app-root/dist
+#
+
+echo "---> Assembling Runtime Image"
+curdir=$(pwd)
+echo "---> Moving artifacts from ${curdir} into deploydir ${DEPLOY_DIR}"
+rsync -avz --include="*.yml" --include="*.yaml" --include="*.jar" --exclude="*" . ${DEPLOY_DIR}

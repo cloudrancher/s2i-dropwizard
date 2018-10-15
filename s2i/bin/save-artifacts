@@ -1,0 +1,8 @@
+#!/bin/bash
+
+pushd ${HOME} > /dev/null
+if [ -d .m2 ]; then
+    tar cf - .m2
+    rm -rf .m2/repository > /dev/null
+fi
+popd > /dev/null

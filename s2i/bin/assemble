@@ -1,0 +1,42 @@
+#!/bin/bash -e
+#
+# Runs the maven build for the dropwizard project, and puts the jar and config file(s)
+# into
+#
+
+echo "---> Restore build artifacts"
+if [ "$(ls /tmp/artifacts/.m2 2>/dev/null)" ]; then
+    mv /tmp/artifacts/.m2 $HOME
+fi
+
+echo "---> Installing application source"
+cp -Rf /tmp/src/. ./
+
+echo "---> Building Dropwizard application from source"
+echo "--> # JAVA_OPTS = $JAVA_OPTS"
+
+if [ -f "mvnw" ]; then
+  ./mvnw clean package ${JAVA_OPTS}
+else
+  mvn clean package ${JAVA_OPTS}
+fi
+
+echo "---> Packaging build artifacts"
+DEF_JAR_NAME=$(mvn -q -Dexec.executable="echo" -Dexec.args='${project.artifactId}-${project.version}.jar' --non-recursive exec:exec)
+JAR_NAME=${JAR_NAME:- "./target/$DEF_JAR_NAME"}
+DEPLOY_DIR=${DEPLOY_DIR:- "/opt/app-root/dist"}
+
+echo "---> Making deployment dir $DEPLOY_DIR"
+mkdir -p $DEPLOY_DIR
+
+if [ -z $JAR_NAME ]; then
+  echo "****** Could not find expected jar file: ${JAR_NAME}"
+  exit 1;
+fi
+
+echo "---> Copying Jar: ${JAR_NAME} and configs into ${DEPLOY_DIR}"
+cp ${JAR_NAME} ${DEPLOY_DIR}
+rsync -avz --include="*.yaml" --include="*.yml" --exclude="*" . ${DEPLOY_DIR}
+
+# Fix source directory permissions
+fix-permissions ./
