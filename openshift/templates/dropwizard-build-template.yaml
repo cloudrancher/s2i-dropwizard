@@ -1,0 +1,81 @@
+apiVersion: v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: dropwizard-build-template
+objects:
+
+##########################################################################
+# Create Image Streams
+##########################################################################
+# Server Stream
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    labels:
+      app: ${APP_NAME}
+      name: ${APP_NAME}
+      template: dropwizard-build-template
+    name: ${APP_NAME}
+
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    creationTimestamp: null
+    labels:
+      app: ${APP_NAME}
+      name: ${APP_NAME}
+      template: dropwizard-build-template
+    name: ${APP_NAME}
+  spec:
+    output:
+      to:
+        kind: ImageStreamTag
+        name: ${APP_NAME}:latest
+    postCommit: {}
+    resources: {}
+    runPolicy: Serial
+    source:
+      contextDir: ${CONTEXT_DIR}
+      git:
+        ref: ${GIT_REF}
+        uri: ${GIT_REPO}
+      # sourceSecret:
+      #   name: ${GITHUB_SECRET}
+      type: Git
+    strategy:
+      sourceStrategy:
+        env:
+        - name: JAVA_OPTS
+          value: ${BUILD_OPTS}
+        forcePull: true
+        from:
+          kind: DockerImage
+          name: ${BUILDER_IMAGE}
+        incremental: true
+      type: Source
+parameters:
+- description: The name of the application
+  displayName: Appplication Name
+  name: APP_NAME
+  required: true
+- description: The repository containing the application source
+  displayName: Git ref
+  name: GIT_REPO
+  required: true
+- description: The Git branch, tag, or hash to build the app from
+  displayName: Git ref
+  name: GIT_REF
+  value: master
+- description: The path in the repository to build from
+  displayName: Project Path
+  name: CONTEXT_DIR
+  value: /
+- description: Builder Image and tag
+  displayName: Builder image
+  name: BUILDER_IMAGE
+  value: egeorge/s2i-dropwizard-builder:latest
+- description: Any additional options to pass to the maven build
+  displayName: Build Options
+  name: BUILD_OPTS
+  value: " "

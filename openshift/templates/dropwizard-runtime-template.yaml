@@ -1,0 +1,36 @@
+apiVersion: v1
+kind: Template
+metadata:
+  name: dropwizard-runtime-template
+objects:
+
+- apiVersion: v1
+  kind: ImageStream
+  metadata:
+    generation: 1
+    labels:
+      app: dropwizard-runtime
+      template: dropwizard-runtime-template
+    name: dropwizard-runtime
+
+- apiVersion: v1
+  kind: BuildConfig
+  metadata:
+    name: dropwizard-runtime
+  spec:
+    runPolicy: Serial
+    source:
+      type: Git
+      git:
+        uri: 'https://github.com/egeorge-nolab/s2i-dropwizard'
+        ref: master
+    strategy:
+      type: Docker
+      dockerStrategy:
+        dockerfilePath: Dockerfile.runtime
+    output:
+      to:
+        kind: ImageStreamTag
+        name: 'dropwizard-runtime:latest'
+    resources: {}
+    postCommit: {}
